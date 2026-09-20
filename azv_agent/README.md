@@ -1,112 +1,60 @@
 # AZV Multi-Agent Workflow
 
-This project implements a two-agent workflow with **Pydantic AI**, **Pydantic**, and the **OpenAI API**.
+Dieses Projekt implementiert einen Zwei-Agenten-Workflow mit **Pydantic AI**, **Pydantic** und der **OpenAI API**.
 
-## Architecture
-Musterrechnung (image/PDF)
-          |
-          v
-+------------------------+
-| Agent 1: Invoice       |
-| extraction             |
-|                        |
-| Pydantic output:       |
-| InvoiceExtraction      |
-+-----------+------------+
-            |
-            | tool delegation
-            v
-+------------------------+
-| Agent 2: Contract      |
-| checker                |
-|                        |
-| Contract + extraction  |
-| -> AZVAssessment       |
-+-----------+------------+
-            |
-            v
-     WorkflowResult
-   (extraction + check)
-
-The implementation follows the Pydantic AI multi-agent delegation pattern: Agent 1 exposes a tool that calls Agent 2, and the parent run passes its usage context to the delegated run. Pydantic models are used as structured outputs for both stages.
-
-## Important interpretation
-
-The workflow is deliberately conservative. A treatment being outside the coverage period is **not automatically treated as an Anzeigepflichtverletzung**. The second agent returns `UNKLAR` when the supplied material does not establish enough facts. `human_review_required` is always true.
+## Ablaufdiagramm (im Anhang der Arbeit zu finden)
 
 
-## Requirements
+## Wichtiger Interpretationshinweis
+
+Der Workflow ist bewusst konservativ ausgelegt. Eine Behandlung außerhalb des Versicherungszeitraums wird **nicht automatisch als Anzeigepflichtverletzung** gewertet. Agent 2 gibt `UNKLAR` zurück, wenn die vorliegenden Unterlagen nicht ausreichen, um einen Sachverhalt eindeutig festzustellen. `human_review_required` ist immer auf `true` gesetzt.
+
+## Voraussetzungen
 
 - Python 3.11+
 - `uv`
-- OpenAI API key
+- OpenAI-API-Schlüssel
 
 ## Setup
 
-From this directory:
+Aus diesem Verzeichnis heraus:
 
 ```bash
 uv sync
 cp .env.example .env
 ```
 
-Put your key in `.env`:
+Trage deinen Schlüssel in `.env` ein:
 
 ```text
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-5.2
 ```
 
-## Run with the supplied example documents
+## Ausführen mit den mitgelieferten Beispieldokumenten
 
 ```bash
 uv run azv-agent \
   --invoice data/musterrechnung.png \
-  --contract data/zahnzusatzversicherungsvertrag.pdf \
-  --output result.json
+  --contract davertrag.pdf \
 ```
 
-## Expected output
+## Erwarteter Output
 
-The terminal prints JSON containing:
+Im Terminal wird ein JSON-Objekt ausgegeben mit:
 
-- extracted invoice metadata
-- all extracted invoice line items
-- Agent 2 classification: `AZV_FALL`, `KEIN_AZV_FALL`, or `UNKLAR`
-- confidence
-- reasons
-- relevant invoice items
-- relevant contract clauses
-- missing information
-- a human-review flag
+- extrahierten Rechnungsmetadaten
+- allen extrahierten Rechnungspositionen
+- der Klassifikation von Agent 2: `AZV_FALL`, `KEIN_AZV_FALL` oder `UNKLAR`
+- der Konfidenz
+- den Begründungen
+- den relevanten Rechnungspositionen
+- den relevanten Vertragsklauseln
+- fehlenden Informationen
+- einem Human-Review-Flag
 
-## Files
+## Beispielaufrufe
 
-```text
-azv_multi_agent_workflow/
-├── data/
-│   ├── musterrechnung.png
-│   ├── zahnzusatzversicherungsvertrag.pdf
-│   └── zahnzusatzversicherungsvertrag.txt
-├── azv_workflow/
-│   ├── __init__.py
-│   ├── agents.py
-│   ├── document_utils.py
-│   ├── main.py
-│   └── models.py
-├── .env.example
-├── .gitignore
-├── pyproject.toml
-└── README.md
-```
-
-## Why Pydantic is used
-
-Pydantic defines the schemas that the agents must return. This makes the invoice extraction and AZV assessment machine-readable and validated instead of relying on free-form text.
-
-
+```bash
 # Hauptaufbau: Agent 1 kennt den Vertrag, Test mit injiziertem (irrelevantem) Datumsfehler
-azv-workflow --invoice data/musterrechnung.png --contract data/vertrag.pdf --inject-error
-
-# Ablation: Agent 1 kennt den Vertrag NICHT -> sollte den bereits beobachteten Fehlschluss reproduzieren
-azv-workflow --invoice data/musterrechnung.png --contract data/vertrag.pdf --withhold-contract-from-extractor
+uv run azv-agent --invoice data/musterrechnung.png --contract data/vertrag.pdf --inject-error

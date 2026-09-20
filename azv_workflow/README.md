@@ -5,6 +5,18 @@ Eigenständiges Projekt (keine Abhängigkeit zu einem anderen Repo). Zwei-Agente
 erneute Extraktion bitten (`request_reextraction`). In dieser Variante enthält die
 Systeminstruktion von Agent 2 eine **verpflichtende** Anweisung: bei jedem vermuteten
 Datumsfehler muss zuerst eine Reextraktion angefordert werden, bevor überhaupt bewertet wird.
+Zusätzlich läuft Agent 2 mit `temperature=0.0`, um die Sampling-Varianz gegenüber der
+`azv_agent`-Variante zu reduzieren.
+
+## Ablaufdiagramm (im Anhang der Arbeit zu finden)
+
+
+**Wichtig für die Einordnung:** Der Tool-Aufruf ist hier keine Ermessensentscheidung des Modells
+mehr, sondern eine im Prompt fest vorgeschriebene Handlungsregel (,,wenn Bedingung X erfüllt,
+dann MUSS Y erfolgen``) -- die inhaltliche Entscheidungslogik ist damit im Kern vorab
+festgelegt, auch wenn sie in natürlicher Sprache statt in Code ausgedrückt ist. Dies entspricht
+der Workflow-Charakteristik im Sinne des in der zugehörigen Arbeit verwendeten
+Kriterienkatalogs (Kontrollfluss liegt beim Entwickler, nicht beim Modell).
 
 ## Setup mit uv
 
@@ -14,33 +26,12 @@ cp .env.example .env
 # .env öffnen und OPENAI_API_KEY eintragen
 ```
 
-## Testdaten
-
-Lege deine Musterrechnung und deinen Vertrag in `data/` ab, z.B.:
-
-```
-data/musterrechnung.png
-data/vertrag.txt      # oder .pdf
-```
-
-`read_contract_text()` in `azv_workflow/document_utils.py` unterstützt `.txt`, `.md` und
-`.pdf` (Textextraktion via pypdf, kein OCR für gescannte PDFs ohne Textlayer).
 
 ## Ausführen
 
 ```bash
 # Normaler Lauf
-uv run azv-workflow --invoice data/musterrechnung.png --contract data/vertrag.txt
+uv run azv-workflow --invoice data/musterrechnung.png --contract data/vertrag.pdf
 
-# Mit künstlich injiziertem, aber AZV-irrelevantem Datumsfehler (invoice_date)
-uv run azv-workflow --invoice data/musterrechnung.png --contract data/vertrag.txt --inject-error
-
-# Ablation: Agent 1 bekommt den Vertragstext nicht (weder initial noch bei Reextraktion)
-uv run azv-workflow --invoice data/musterrechnung.png --contract data/vertrag.txt --withhold-contract-from-extractor
-```
-
-Ohne installierten Entry Point geht auch:
-
-```bash
-uv run python -m azv_workflow.main --invoice data/musterrechnung.png --contract data/vertrag.txt
-```
+# Mit künstlich injiziertem, decision-relevantem Fehler (treatment_period)
+uv run azv-workflow --invoice data/musterrechnung.png --contract data/vertrag.pdf --inject-error
