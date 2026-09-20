@@ -1,0 +1,21 @@
+[project]
+name = "azv-workflow"
+version = "0.1.0"
+description = "AZV Workflow mit expliziter Datumsfehler-Anweisung für Bewertungsagent"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.11,<3",
+    "pydantic-ai>=2.35,<3",
+    "python-dotenv",
+    "pypdf",
+]
+
+[project.scripts]
+azv-workflow = "azv_workflow.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["azv_workflow"]
