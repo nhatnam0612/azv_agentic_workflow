@@ -1,11 +1,11 @@
-# AZV Workflow – Date Hint Variante
+# AZV Workflow
 
 Eigenständiges Projekt (keine Abhängigkeit zu einem anderen Repo). Zwei-Agenten-Workflow
 (Extraktion + AZV-Bewertung) mit agentischer Rückkopplung: Agent 2 kann Agent 1 um eine
 erneute Extraktion bitten (`request_reextraction`). In dieser Variante enthält die
 Systeminstruktion von Agent 2 eine **verpflichtende** Anweisung: bei jedem vermuteten
 Datumsfehler muss zuerst eine Reextraktion angefordert werden, bevor überhaupt bewertet wird.
-Zusätzlich läuft Agent 2 mit `temperature=0.0`, um die Sampling-Varianz gegenüber der
+Zusätzlich läuft Agent 2 mit `temperature=0`, um die Sampling-Varianz gegenüber der
 `azv_agent`-Variante zu reduzieren.
 
 ## Ablaufdiagramm (im Anhang der Arbeit zu finden)
